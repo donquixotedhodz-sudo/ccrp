@@ -17,8 +17,8 @@ $flash_error = $_GET['error'] ?? null;
     <div class="min-h-screen flex items-center justify-center px-4">
       <div class="w-full max-w-md">
         <div class="text-center mb-6">
+          <img src="/image/logo.png" alt="Portal Logo" class="mx-auto h-20 w-20 mb-2">
           <h1 class="text-2xl font-semibold text-slate-800">Credentials Request Portal</h1>
-          <p class="text-sm text-slate-600">Login as Student, Registrar, or Admin</p>
         </div>
 
         <?php if ($flash_success): ?>

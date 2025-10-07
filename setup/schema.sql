@@ -37,7 +37,13 @@ INSERT INTO `request_types` (`code`, `name`) VALUES
   ('diploma', 'Diploma'),
   ('tor', 'Transcript of Records (TOR)'),
   ('certificate_of_grades', 'Certificate of Grades'),
-  ('transfer_credentials', 'Transfer Credentials')
+  ('transfer_credentials', 'Transfer Credentials'),
+  ('certificate_of_gwa', 'Certificate of GWA'),
+  ('good_moral', 'Good Moral'),
+  ('certification_upper_25_percent', 'Certification of Upper 25%'),
+  ('certification_latin_honor', 'Certification of Latin Honor'),
+  ('honorable_dismissal', 'Honorable Dismissal'),
+  ('cav', 'CAV');
 ON DUPLICATE KEY UPDATE `name` = VALUES(`name`);
 
 -- Requests made by students
@@ -74,7 +80,8 @@ CREATE INDEX `idx_actions_request` ON `request_actions` (`request_id`);
 CREATE TABLE IF NOT EXISTS `clarcrequest` (
   `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   `student_id` INT UNSIGNED NOT NULL,
-  `request_type` ENUM('tor','certificate_of_grades','diploma') NOT NULL,
+  `request_type` VARCHAR(64) NOT NULL,
+  `copies` INT UNSIGNED NOT NULL DEFAULT 1,
   `status` ENUM('pending','in_progress','approved','denied','fulfilled','cancelled') NOT NULL DEFAULT 'pending',
   `notes` TEXT NULL,
   `submitted_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -83,6 +90,38 @@ CREATE TABLE IF NOT EXISTS `clarcrequest` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE INDEX `idx_clarcrequest_student_status` ON `clarcrequest` (`student_id`, `status`);
+
+-- Detailed applicant information per request
+CREATE TABLE IF NOT EXISTS `clarcrequest_details` (
+  `request_id` BIGINT UNSIGNED PRIMARY KEY,
+  `last_name` VARCHAR(128) NOT NULL,
+  `first_name` VARCHAR(128) NOT NULL,
+  `middle_name` VARCHAR(128) NOT NULL,
+  `student_number` VARCHAR(64) NOT NULL,
+  `date_of_birth` DATE NOT NULL,
+  `place_of_birth` VARCHAR(255) NOT NULL,
+  `parent_guardian` VARCHAR(255) NOT NULL,
+  `date_of_application` DATE NOT NULL,
+  `permanent_address` VARCHAR(255) NOT NULL,
+  `course_major` VARCHAR(255) NOT NULL,
+  `student_type` VARCHAR(32) NOT NULL,
+  `semester_year_admitted` VARCHAR(64) NOT NULL,
+  `last_term_enrolled` VARCHAR(64) NOT NULL,
+  `classification` VARCHAR(32) NOT NULL,
+  `purpose` TEXT NOT NULL,
+  CONSTRAINT `fk_details_request` FOREIGN KEY (`request_id`) REFERENCES `clarcrequest`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Educational background entries per request
+CREATE TABLE IF NOT EXISTS `clarcrequest_education` (
+  `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `request_id` BIGINT UNSIGNED NOT NULL,
+  `level` ENUM('elementary','high_school','senior_high','college') NOT NULL,
+  `school` VARCHAR(255) NOT NULL,
+  `degree` VARCHAR(255) NOT NULL,
+  `graduation_date` DATE NOT NULL,
+  CONSTRAINT `fk_edu_request` FOREIGN KEY (`request_id`) REFERENCES `clarcrequest`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Optional: seed users (password hashes should be generated via PHP)
 -- Uncomment and replace the hash values if you want direct seeding via SQL.
